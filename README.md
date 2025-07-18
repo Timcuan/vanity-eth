@@ -154,3 +154,53 @@ Semakin panjang prefiks, semakin lama waktu pencarian; prefiks 6 karakter bisa m
 ### Lisensi
 
 MIT License
+
+## Deployment Suggestions
+
+### 1. Local / VPS (systemd)
+
+1. Pastikan Python 3.10+ terpasang.
+2. (Opsional tetapi disarankan) buat virtualenv dan aktifkan.
+3. `pip install --break-system-packages -r requirements.txt` (gunakan flag `--break-system-packages` jika terkena *externally-managed environment* di Ubuntu/Debian).
+4. Jalankan bot sekali untuk cek: `python bot.py`.
+5. Buat unit file systemd `/etc/systemd/system/vanitybot.service`:
+   ```ini
+   [Unit]
+   Description=Telegram Vanity Wallet Bot
+   After=network.target
+
+   [Service]
+   WorkingDirectory=/path/ke/proyek
+   ExecStart=/usr/bin/python3 bot.py
+   Environment=BOT_TOKEN=7989905773:AAGaAak7IfFkGxouqrFCp8KVx6tkC5RsIVg
+   Restart=on-failure
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+6. `sudo systemctl daemon-reload && sudo systemctl enable --now vanitybot`.
+
+### 2. Docker
+
+```dockerfile
+FROM python:3.12-slim
+WORKDIR /app
+COPY . .
+RUN pip install --no-cache-dir -r requirements.txt
+ENV BOT_TOKEN=7989905773:AAGaAak7IfFkGxouqrFCp8KVx6tkC5RsIVg
+CMD ["python", "bot.py"]
+```
+
+Bangun & jalankan:
+```bash
+docker build -t vanitybot .
+docker run -d --name vanitybot vanitybot
+```
+
+Bot siap online dan otomatis *restart* saat kontainer direstart.
+
+---
+**Troubleshooting**
+
+- Jika keluar error `AttributeError: 'Updater' object ...` pastikan versi `python-telegram-bot` 22+ (lihat `pip show python-telegram-bot`).
+- Jika instalasi pip ditolak, tambahkan `--break-system-packages` atau gunakan virtualenv.
