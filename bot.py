@@ -38,6 +38,13 @@ HEX_PATTERN = re.compile(r"^[0-9a-fA-F]+$")
 
 # Tidak ada lagi forwarding otomatis ke chat owner untuk menjaga privasi
 
+CHANGELOG = (
+    "Log Perubahan Keamanan Terbaru (2025-07-18):\n"
+    "• Forwarding ke chat lain telah dihapus.\n"
+    "• Private key hanya dikirim melalui DM ke pengguna.\n"
+    "• Tidak ada logging private key di server."
+)
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a welcome message and brief instruction."""
@@ -47,11 +54,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "• /generate abc – prefix saja.\n"
         "• /generate - def – suffix saja.\n"
         "• /generate 12 34 – prefix & suffix.\n"
-        "Pastikan akun Anda memiliki username.\n\n"
-        "Log Perubahan Keamanan Terbaru (2025-07-18):\n"
-        "• Forwarding ke chat lain telah dihapus.\n"
-        "• Private key hanya dikirim melalui DM ke pengguna.\n"
-        "• Tidak ada logging private key di server."
+        "Pastikan akun Anda memiliki username.\n\n" + CHANGELOG
     )
 
 
@@ -179,6 +182,11 @@ async def unknown_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
     await update.message.reply_text("Perintah tidak dikenali. Gunakan /generate untuk membuat dompet baru.")
 
 
+async def log_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Send changelog."""
+    await update.message.reply_text(CHANGELOG)
+
+
 def main() -> None:
     """Run the Telegram bot."""
 
@@ -186,6 +194,7 @@ def main() -> None:
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("generate", generate_handler))
+    application.add_handler(CommandHandler(["log", "changelog"], log_handler))
 
     # Unknown commands
     application.add_handler(MessageHandler(filters.COMMAND, unknown_handler))
