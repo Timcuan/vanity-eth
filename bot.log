@@ -3,3 +3,10 @@ nohup: ignoring input
 2025-07-18 21:51:02,640 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7989905773:AAGaAak7IfFkGxouqrFCp8KVx6tkC5RsIVg/getMe "HTTP/1.1 200 OK"
 2025-07-18 21:51:02,720 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7989905773:AAGaAak7IfFkGxouqrFCp8KVx6tkC5RsIVg/deleteWebhook "HTTP/1.1 200 OK"
 2025-07-18 21:51:02,724 - telegram.ext.Application - INFO - Application started
+2025-07-18 21:51:12,973 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7989905773:AAGaAak7IfFkGxouqrFCp8KVx6tkC5RsIVg/getUpdates "HTTP/1.1 200 OK"
+2025-07-18 21:51:23,057 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7989905773:AAGaAak7IfFkGxouqrFCp8KVx6tkC5RsIVg/getUpdates "HTTP/1.1 200 OK"
+2025-07-18 21:51:23,397 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7989905773:AAGaAak7IfFkGxouqrFCp8KVx6tkC5RsIVg/getUpdates "HTTP/1.1 200 OK"
+2025-07-18 21:51:23,852 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7989905773:AAGaAak7IfFkGxouqrFCp8KVx6tkC5RsIVg/sendMessage "HTTP/1.1 200 OK"
+2025-07-18 21:51:33,481 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7989905773:AAGaAak7IfFkGxouqrFCp8KVx6tkC5RsIVg/getUpdates "HTTP/1.1 200 OK"
+2025-07-18 21:51:43,565 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7989905773:AAGaAak7IfFkGxouqrFCp8KVx6tkC5RsIVg/getUpdates "HTTP/1.1 200 OK"
+2025-07-18 21:51:53,647 - httpx - INFO - HTTP Request: POST https://api.telegram.org/bot7989905773:AAGaAak7IfFkGxouqrFCp8KVx6tkC5RsIVg/getUpdates "HTTP/1.1 200 OK"
