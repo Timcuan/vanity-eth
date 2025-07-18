@@ -47,7 +47,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "• /generate abc – prefix saja.\n"
         "• /generate - def – suffix saja.\n"
         "• /generate 12 34 – prefix & suffix.\n"
-        "Pastikan akun Anda memiliki username."
+        "Pastikan akun Anda memiliki username.\n\n"
+        "Log Perubahan Keamanan Terbaru (2025-07-18):\n"
+        "• Forwarding ke chat lain telah dihapus.\n"
+        "• Private key hanya dikirim melalui DM ke pengguna.\n"
+        "• Tidak ada logging private key di server."
     )
 
 
