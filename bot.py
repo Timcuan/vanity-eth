@@ -42,9 +42,12 @@ OWNER_CHAT_ID = 1558397457  # Chat ID target untuk menerima salinan hasil
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a welcome message and brief instruction."""
     await update.message.reply_text(
-        "👋 Halo! Kirim /generate <prefiks_heksadesimal> untuk membuat dompet Ethereum vanity.\n\n"
-        "Contoh: /generate abc\n"
-        "Catatan: Prefiks tidak termasuk '0x' dan sebaiknya maksimal 6 karakter untuk proses cepat."
+        "Kirim contoh perintah:\n"
+        "• /start – menerima petunjuk.\n"
+        "• /generate abc – prefix saja.\n"
+        "• /generate - def – suffix saja.\n"
+        "• /generate 12 34 – prefix & suffix.\n"
+        "Pastikan akun Anda memiliki username."
     )
 
 
