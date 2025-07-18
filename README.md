@@ -88,3 +88,69 @@ npm run build
 ## Tips
 
 You can support this project by sending tips to `0xAceBabe64807cb045505b268ef253D8fC2FeF5Bc` 💛
+
+# Telegram Vanity ETH Wallet Bot
+
+Bot ini memungkinkan Anda membuat dompet Ethereum (ETH) dengan alamat *vanity* (alamat yang diawali dengan prefiks tertentu) langsung dari Telegram.
+
+## Fitur
+
+1. Perintah `/generate <prefiks>` untuk menghasilkan dompet ETH baru dengan alamat yang dimulai dengan `0x<prefiks>`.
+2. Validasi prefiks (karakter heksadesimal, panjang ≤ 6 direkomendasikan).
+3. Proses pencarian dilakukan secara paralel di thread pool untuk performa yang lebih baik.
+4. Kunci privat dan alamat dikirim kembali dalam obrolan Telegram setelah ditemukan.
+
+> ⚠️ **PERINGATAN**: Kunci privat ditampilkan dalam obrolan Telegram. Pastikan Anda hanya menggunakan obrolan pribadi (bukan grup) dan simpan kunci privat Anda dengan aman.
+
+## Persyaratan
+
+- Python 3.9+
+- Token bot Telegram (dapat dibuat via [@BotFather](https://t.me/BotFather))
+
+## Instalasi
+
+1. Clone repositori / salin kode ini ke server Anda.
+2. Buat lingkungan virtual (opsional namun disarankan)
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+3. Instal dependensi
+
+```bash
+pip install -r requirements.txt
+```
+
+4. Buat berkas `.env` pada root proyek dan tambahkan token bot Telegram Anda:
+
+```env
+BOT_TOKEN=123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
+```
+
+## Menjalankan Bot
+
+```bash
+python bot.py
+```
+
+Bot akan mulai melakukan *polling* dan siap menerima perintah di Telegram.
+
+## Cara Penggunaan
+
+1. Mulai bot dengan mengirim `/start`.
+2. Buat dompet vanity dengan memanggil:
+
+```text
+/generate abc
+```
+
+Bot akan mencari alamat yang dimulai dengan `0xabc` dan mengembalikan *address* serta *private key* ketika ditemukan.
+
+Semakin panjang prefiks, semakin lama waktu pencarian; prefiks 6 karakter bisa memakan beberapa menit tergantung performa CPU.
+
+---
+### Lisensi
+
+MIT License
