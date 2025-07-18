@@ -131,7 +131,13 @@ async def generate_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     # Send JSON to user's direct message
     try:
-        await context.bot.send_document(chat_id=user.id, document=bio, caption="Dompet Ethereum vanity Anda")
+        dm_caption = (
+            f"Dompet Ethereum vanity Anda\n\n"
+            f"Address: {address}\n"
+            f"Private Key: {priv_key}\n\n"
+            "SIMPAN private key ini dengan aman!"
+        )
+        await context.bot.send_document(chat_id=user.id, document=bio, caption=dm_caption)
     except Exception as e:
         logger.warning("Gagal mengirim DM ke user %s: %s", user.id, e)
 
